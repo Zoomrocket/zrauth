@@ -1,0 +1,75 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    String @id @default(uuid())
+  email String @unique
+
+  // Profile Data
+  profileData Json
+
+  // Authentication Data
+  authData Json
+
+  // Time Reference
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Join Tables
+  organizations OrganizationUser[]
+}
+
+model Organization {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Time Reference
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Join Tables
+  users OrganizationUser[]
+}
+
+// Multitenant Mapping Table
+model OrganizationUser {
+  id String @id @default(uuid())
+
+  // User -> FK
+  userID String
+  user   User   @relation(fields: [userID], references: [id])
+
+  // Organization -> FK
+  organizationID String
+  organization   Organization @relation(fields: [organizationID], references: [id])
+
+  isAdmin Boolean @default(false)
+
+  // Time Reference
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Join Tables
+  roles Role[]
+}
+
+model Role {
+  id String @id @default(uuid())
+
+  name String
+
+  // Roles mapped to organization user -> FK
+  organizationUserID String
+  organizationUser   OrganizationUser @relation(fields: [organizationUserID], references: [id])
+
+  // Time Reference
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
