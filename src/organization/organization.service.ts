@@ -8,6 +8,25 @@ export class OrganizationService implements IOrganizationService {
     constructor(
         private readonly _prismaService: PrismaService
     ) { }
+    
+    async fetchOrganizationUsers(organizationID: string) {
+
+        let organizationUsers = await this._prismaService.organizationUser.findMany({
+            where: {
+                organizationID: organizationID
+            },
+            include: {
+                user: {
+                    select: {
+                        email: true,
+                        profileData: true
+                    }
+                },
+            }
+        });
+
+        return organizationUsers;
+    }
 
     async createOrganization(adminID: string, name: string) {
 

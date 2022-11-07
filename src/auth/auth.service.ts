@@ -118,8 +118,8 @@ export class AuthService implements IAuthService {
         let tokenPair = await this.generateTokenPair(user.id);
 
         return {
-            access_token: tokenPair.accessToken,
-            refresh_token: tokenPair.refreshToken
+            accessToken: tokenPair.accessToken,
+            refreshToken: tokenPair.refreshToken
         }
     }
 
@@ -186,8 +186,8 @@ export class AuthService implements IAuthService {
         let tokenPair = await this.generateTokenPair(user.id);
 
         return {
-            access_token: tokenPair.accessToken,
-            refresh_token: tokenPair.refreshToken
+            accessToken: tokenPair.accessToken,
+            refreshToken: tokenPair.refreshToken
         }
     }
 
@@ -212,8 +212,8 @@ export class AuthService implements IAuthService {
         let tokenPair = await this.generateTokenPair(userData.id);
 
         return {
-            access_token: tokenPair.accessToken,
-            refresh_token: refreshToken
+            accessToken: tokenPair.accessToken,
+            refreshToken: refreshToken
         }
     }
 

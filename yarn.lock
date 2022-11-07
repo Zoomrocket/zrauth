@@ -1006,6 +1006,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/lodash@^4.14.187":
+  version "4.14.187"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.187.tgz#122ff0a7192115b4c1a19444ab4482caa77e2c9d"
+  integrity sha512-MrO/xLXCaUgZy3y96C/iOsaIqZSeupyTImKClHunL5GrmaiII2VwvWmLBu2hwa0Kp0sV19CsyjtrTc/Fx8rg/A==
+
 "@types/mime@*":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-3.0.1.tgz#5f8f2bca0a5863cb69bc0b0acd88c96cb1d4ae10"
@@ -3942,6 +3947,11 @@ makeerror@1.0.12:
   integrity sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==
   dependencies:
     tmpl "1.0.5"
+
+maskman.js@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/maskman.js/-/maskman.js-2.0.6.tgz#1b7f7c64878a9d0efc948aba11f0c977bcf43125"
+  integrity sha512-F6gUfNQ+WV+1ukUVS4vWQk0VwjN0a4Xyq1kywxpg+b6AP1iKezGs90P9d1kvV2+tMkuGYTFmZKbSRybVuk79Xw==
 
 media-typer@0.3.0:
   version "0.3.0"

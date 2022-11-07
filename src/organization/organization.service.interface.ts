@@ -1,5 +1,8 @@
 export interface IOrganizationService {
 
+    // list organization users
+    fetchOrganizationUsers(organizationID: string): Promise<any>
+
     // creates an organization
     createOrganization(adminID: string, name: string): Promise<boolean>
 
