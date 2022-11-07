@@ -1,5 +1,11 @@
 export interface IOrganizationService {
 
+    // add user
+    inviteUser(email: string, name: string, organizationID: string): Promise<boolean>
+
+    // accept invitation
+    acceptInvitation(userID: string, organizationID: string, code: string, password: string | null): Promise<boolean>
+
     // list organization users
     fetchOrganizationUsers(organizationID: string): Promise<any>
 
@@ -17,8 +23,4 @@ export interface IOrganizationService {
 
     // delete an organization
     deleteOrganization(organizationID: string): Promise<boolean>
-
-    // add user to organization
-    addOrganizationUser(userID: string, organizationID: string): Promise<boolean>
-
 }

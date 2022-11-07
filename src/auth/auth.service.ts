@@ -9,13 +9,41 @@ import { keys } from "src/keys";
 import { google } from "googleapis";
 import { IAuthService } from "./auth.service.interface";
 import { randomUUID } from "crypto";
+import * as otp from "otp-generator";
 
 @Injectable()
 export class AuthService implements IAuthService {
 
     constructor(
         private readonly _prismaService: PrismaService,
+        private readonly _redisService: RedisService,
+        private readonly _mailService: MailerService
     ) { }
+
+    async sendResetCode(email: string) {
+        let user = await this._prismaService.user.findUnique({ where: { email: email } });
+        let code = otp.generate(6, { lowerCaseAlphabets: false, specialChars: false, digits: true, upperCaseAlphabets: true })
+        await this._mailService.sendEmail(user.email, `${keys.ORG_NAME}: Reset your password`, `
+            <p>Hi ${user.profileData["firstname"]},</p>
+            <p>Please reset your password <a href="${keys.REDIRECT_URL}/auth/reset?email=${email}&code=${code}">here</a><p>
+            <p>Thanks,</p>
+            <p>${keys.ORG_NAME}.</p>
+        `);
+        await this._redisService.client.set(`reset:${user.email}`, code, { EX: keys.CODE_EXPIRY });
+        return true;
+    }
+
+    async resetPassword(email: string, code: string, password: string) {
+        let verificationCode = await this._redisService.client.get(`reset:${email}`);
+        if (!verificationCode || verificationCode !== code) {
+            throw new Error("unable to verify reset code")
+        }
+        let user = await this._prismaService.user.findUnique({ where: { email: email } });
+        user.authData["password"] = await bcrypt.hash(password, 10);
+        await this._prismaService.user.update({ where: { email: email }, data: user });
+        await this._redisService.client.del(`reset:${email}`);
+        return true;
+    }
 
     private async generateTokenPair(userID: string) {
 

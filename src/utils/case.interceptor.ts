@@ -9,7 +9,7 @@ import { MaskMan } from "maskman.js";
 export class SnakeCaseInterceptor implements NestInterceptor {
 
   private snakeCaseConverter(json: any) {
-    json = MaskMan.convert(json).to(lodash.snakeCase);
+    json = MaskMan.convert(JSON.parse(JSON.stringify(json))).to(lodash.snakeCase);
     return json;
   }
 
@@ -17,7 +17,7 @@ export class SnakeCaseInterceptor implements NestInterceptor {
 
     return next.handle().pipe(tap((data) => {
       const response: Response = context.switchToHttp().getResponse();
-      response.status(HttpStatus.OK).json(this.snakeCaseConverter(data));
+      response.json(this.snakeCaseConverter(data));
       return;
     }));
 

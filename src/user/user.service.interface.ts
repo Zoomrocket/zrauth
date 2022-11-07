@@ -8,7 +8,9 @@ export interface IUserService {
     // update user profile
     updateProfile(firstname: string, lastname: string): Promise<boolean>
 
-    // get user
-    fetchUser(email: string): Promise<User>
+    // fetch organizations
+    fetchOrganizations(userID: string): Promise<any>
+
+    
 
 }

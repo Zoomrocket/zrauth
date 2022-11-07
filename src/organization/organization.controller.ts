@@ -1,8 +1,8 @@
 import { UseGuards, Controller, Post, Delete, Body, Query, Res, HttpStatus, Param, Get } from "@nestjs/common";
-import { query, Response } from "express";
+import { Response } from "express";
 import { AuthGuard } from "src/security/auth.guard";
 import { OrganizationAdminGuard } from "src/security/orgadmin.guard";
-import { CreateOrganizationDto } from "./organization.dto";
+import { AcceptInvitationDto, CreateOrganizationDto, SendInvitationDto } from "./organization.dto";
 import { OrganizationService } from "./organization.service";
 
 @UseGuards(AuthGuard)
@@ -19,8 +19,8 @@ export class OrganizationController {
             await this._organizationService.createOrganization(res.locals.user["user_id"], body.name);
             return { "detail": "done" };
         } catch (err) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-            return;
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to create organization" };
         }
     }
 
@@ -30,8 +30,8 @@ export class OrganizationController {
             await this._organizationService.leaveOrganization(res.locals.user["user_id"], params.oid);
             return { "detail": "done" };
         } catch (err) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-            return;
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to leave organization" };
         }
     }
 
@@ -42,8 +42,8 @@ export class OrganizationController {
             await this._organizationService.deleteOrganization(params.oid);
             return { "detail": "done" };
         } catch (err) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-            return;
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to delete organization" };
         }
     }
 
@@ -54,8 +54,8 @@ export class OrganizationController {
             let result = await this._organizationService.fetchOrganizationUsers(params.oid);
             return result;
         } catch (err) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-            return;
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to get organization" };
         }
     }
 
@@ -66,8 +66,8 @@ export class OrganizationController {
             await this._organizationService.assignRole(res.locals.user["user_id"], params.oid, query.name);
             return { "detail": "done" };
         } catch (err) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-            return;
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to assign roles" };
         }
     }
 
@@ -78,8 +78,32 @@ export class OrganizationController {
             await this._organizationService.deleteRole(res.locals.user["user_id"], params.oid, query.name);
             return { "detail": "done" };
         } catch (err) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-            return;
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to delete user roles" };
+        }
+    }
+
+    @UseGuards(OrganizationAdminGuard)
+    @Post("/:oid/users/invite-user")
+    async postInvite(@Param() params: any, @Body() body: SendInvitationDto, @Res() res: Response) {
+        try {
+            await this._organizationService.inviteUser(body.email, body.name, params.oid);
+            return { "detail": "done" };
+        } catch (err) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to invite user" };
+        }
+    }
+
+    @UseGuards(OrganizationAdminGuard)
+    @Post("/:oid/users/accept-invite")
+    async postAcceptInvitation(@Param() params: any, @Body() body: AcceptInvitationDto, @Res() res: Response) {
+        try {
+            await this._organizationService.acceptInvitation(body.user_id, params.oid, body.code, body.password);
+            return { "detail": "done" };
+        } catch (err) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to join organization" };
         }
     }
 

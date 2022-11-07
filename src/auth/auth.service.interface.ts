@@ -5,6 +5,12 @@ interface TokenPair {
 
 export interface IAuthService {
 
+    // send password reset email
+    sendResetCode(email: string): Promise<boolean>
+
+    // change password
+    resetPassword(email: string, code: string, password: string): Promise<boolean>
+
     // creates an account
     createAccount(email: string, password: string, firstname: string, lastname: string, organization: string): Promise<boolean>
 

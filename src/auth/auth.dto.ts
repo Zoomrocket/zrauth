@@ -38,3 +38,13 @@ export class SignupDto {
     @IsNotEmpty()
     organization: string
 }
+
+export class PasswordResetDto {
+    @IsEmail()
+    @IsNotEmpty()
+    email: string
+
+    code: string
+
+    password: string
+}
