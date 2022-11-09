@@ -5,8 +5,9 @@
 ZRAuth is a simple multitenant authentication server written in nest js and prisma
 
 -----
-## Prisma and DB
+## Prisma and DBW
 Create a postgres instance and create a db "zrauth"
+
 ```
 $ npx prisma migrate
 ```
