@@ -28,7 +28,10 @@ model User {
 
 model Organization {
   id   String @id @default(uuid())
-  name String @unique
+
+  identifier String @unique
+  
+  name String
 
   // Time Reference
   createdAt DateTime @default(now())

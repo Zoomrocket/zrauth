@@ -8,7 +8,7 @@ import { AccessTokenClaims, RefreshTokenClaims } from "./claims.interface";
 import { keys } from "src/keys";
 import { google } from "googleapis";
 import { IAuthService } from "./auth.service.interface";
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import * as otp from "otp-generator";
 
 @Injectable()
@@ -66,7 +66,6 @@ export class AuthService implements IAuthService {
 
         let accessClaims: AccessTokenClaims = {
             jti: access_id,
-            aud: "account",
             typ: "Bearer",
             scope: "email profile",
             iss: keys.SERVER_URL,
@@ -76,6 +75,7 @@ export class AuthService implements IAuthService {
             organizations: user.organizations.map(organization => ({
                 organization_id: organization.organizationID,
                 name: organization.organization.name,
+                identifier: organization.organization.identifier,
                 is_admin: organization.isAdmin,
                 roles: organization.roles.map(role => role.name)
             }))
@@ -84,7 +84,6 @@ export class AuthService implements IAuthService {
         let refreshClaims: RefreshTokenClaims = {
             jti: refresh_id,
             user_id: user.id,
-            aud: "account",
             typ: "Refresh",
             iss: keys.SERVER_URL,
             scope: "email profile"
@@ -104,6 +103,8 @@ export class AuthService implements IAuthService {
         if (!password) throw new Error("password required for email signup");
         hashpass = await bcrypt.hash(password, 10);
 
+        let identifier = `${organization.toLowerCase()}-${randomBytes(6).toString("hex")}`;
+
         await this._prismaService.organizationUser.create({
             data: {
                 user: {
@@ -121,7 +122,8 @@ export class AuthService implements IAuthService {
                 },
                 organization: {
                     create: {
-                        name: organization
+                        name: organization,
+                        identifier: identifier
                     }
                 },
                 isAdmin: true

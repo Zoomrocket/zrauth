@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Post, Res, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
 import { keys } from "src/keys";
-import { LoginEmailDto, LoginGoogleDto, PasswordResetDto, SignupDto } from "./auth.dto";
+import { LoginEmailDto, LoginGoogleDto, PasswordResetDto, RefreshDto, SignupDto } from "./auth.dto";
 import { AuthService } from "./auth.service";
 
 @Controller("/v1/auth")
@@ -16,6 +16,18 @@ export class AuthController {
         try {
             await this._authService.createAccount(body.email, body.password, body.firstname, body.lastname, body.organization);
             return { detail: "created" };
+        } catch (err) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return { detail: "unable to signup" };
+        }
+    }
+
+    @Post("/refresh")
+    @HttpCode(HttpStatus.OK)
+    async postRefresh(@Body() body: RefreshDto, @Res() res: Response) {
+        try {
+            let result = await this._authService.refreshAccessToken(body.refresh_token);
+            return result;
         } catch (err) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             return { detail: "unable to signup" };
@@ -61,7 +73,7 @@ export class AuthController {
         }
     }
 
-    
+
     @Post("/login-google-redirect")
     @HttpCode(HttpStatus.OK)
     async postLoginGoogle(@Body() body: LoginGoogleDto, @Res() res: Response) {

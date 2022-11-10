@@ -6,6 +6,7 @@ import { keys } from "src/keys";
 import { IOrganizationService } from "./organization.service.interface";
 import * as otp from "otp-generator";
 import * as bcrypt from "bcrypt";
+import { randomBytes } from "crypto";
 
 @Injectable()
 export class OrganizationService implements IOrganizationService {
@@ -114,6 +115,8 @@ export class OrganizationService implements IOrganizationService {
 
     async createOrganization(adminID: string, name: string) {
 
+        let identifier = `${name}-${randomBytes(6).toString("hex")}`
+
         await this._prismaService.organizationUser.create({
             data: {
                 user: {
@@ -124,7 +127,8 @@ export class OrganizationService implements IOrganizationService {
                 isAdmin: true,
                 organization: {
                     create: {
-                        name: name
+                        name: name,
+                        identifier: identifier
                     }
                 }
             }
