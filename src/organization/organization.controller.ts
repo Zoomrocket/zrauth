@@ -95,7 +95,6 @@ export class OrganizationController {
         }
     }
 
-    @UseGuards(OrganizationAdminGuard)
     @Post("/:oid/users/accept-invite")
     async postAcceptInvitation(@Param() params: any, @Body() body: AcceptInvitationDto, @Res() res: Response) {
         try {

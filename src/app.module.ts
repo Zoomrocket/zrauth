@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { OrganizationModule } from './organization/organization.module';
 import { SecurityModule } from './security/security.module';
 import { UtilsModule } from './utils/utils.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { UtilsModule } from './utils/utils.module';
     UserModule,
     OrganizationModule,
     SecurityModule,
-    UtilsModule
+    UtilsModule,
+    AdminModule
   ],
 })
 export class AppModule { }

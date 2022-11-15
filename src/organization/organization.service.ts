@@ -54,8 +54,6 @@ export class OrganizationService implements IOrganizationService {
             newUser = true;
         }
 
-
-
         let code = otp.generate(6, { lowerCaseAlphabets: false, specialChars: false, digits: true, upperCaseAlphabets: true });
         await this._mailerService.sendEmail(email, `Invitation: You've been invited to join ${organization.name}`, `
             <p>Hi ${name},</p>
