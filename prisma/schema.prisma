@@ -33,6 +33,8 @@ model Organization {
   
   name String
 
+  maxUsers Int @default(5)
+
   // Time Reference
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
