@@ -7,6 +7,7 @@ import { IOrganizationService } from "./organization.service.interface";
 import * as otp from "otp-generator";
 import * as bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
+import { User } from "@prisma/client";
 
 @Injectable()
 export class OrganizationService implements IOrganizationService {
@@ -18,7 +19,7 @@ export class OrganizationService implements IOrganizationService {
 
     ) { }
 
-    async inviteUser(email: string, name: string, organizationID: string) {
+    async inviteUser(email: string, name: string, organizationID: string, roles: Array<string>) {
         let user = await this._prismaService.user.findUnique({ where: { email: email } });
         let organization = await this._prismaService.organization.findUnique({ where: { id: organizationID } });
         if (!organization) {
@@ -31,26 +32,9 @@ export class OrganizationService implements IOrganizationService {
             if (orgUser) {
                 throw new Error("already part of organization");
             }
-
-            let otherOrg = await this._prismaService.organizationUser.findFirst({ where: { userID: user.id } });
-
-            if (!otherOrg) {
-                newUser = true;
-            }
-
         }
 
         if (!user) {
-            user = await this._prismaService.user.create({
-                data: {
-                    email: email,
-                    profileData: {
-                        firstname: name,
-                        status: "verified"
-                    },
-                    authData: {}
-                }
-            })
             newUser = true;
         }
 
@@ -58,36 +42,63 @@ export class OrganizationService implements IOrganizationService {
         await this._mailerService.sendEmail(email, `Invitation: You've been invited to join ${organization.name}`, `
             <p>Hi ${name},</p>
             <p>You've been invited to join ${organization.name}</p>
-            <p>If you want to join please press the link <a href="${keys.REDIRECT_URL}/join?user=${user.id}&org=${organizationID}&newuser=${newUser}&code=${code}">here</a></p>
+            <p>If you want to join please press the link <a href="${keys.REDIRECT_URL}/join?user=${email}&org=${organizationID}&newuser=${newUser}&code=${code}&name=${name}">here</a></p>
             <p>Thanks,</p>
             <p>${keys.ORG_NAME}.</p>
         `)
-        await this._redisService.client.set(`invite:${organizationID}-${user.id}`, code, { EX: keys.CODE_EXPIRY });
+        await this._redisService.client.set(`invite:${organizationID}-${email}`, JSON.stringify({ code: code, name: name, newuser: newUser, roles: roles }), { EX: keys.CODE_EXPIRY });
         return true;
     }
 
-    async acceptInvitation(userID: string, organizationID: string, code: string, password: string | null) {
-        if (password) {
-            let user = await this._prismaService.user.findUnique({ where: { id: userID } });
-            let hashpass = await bcrypt.hash(password, 10);
-            user.authData["password"] = hashpass;
+    async acceptInvitation(email: string, organizationID: string, code: string, password: string | null) {
+
+        let inviteData = await this._redisService.client.get(`invite:${organizationID}-${email}`);
+
+        let invite = JSON.parse(inviteData);
+
+        if (!invite || !invite.code || invite.code !== code) {
+            throw new Error("unable to verify code");
         }
 
-        let verificationCode = await this._redisService.client.get(`invite:${organizationID}-${userID}`);
+        let user: User | null = null;
 
-        if (!verificationCode || verificationCode !== code) {
-            throw new Error("unable to verify code");
+        if (!invite.newuser) {
+            user = await this._prismaService.user.findUnique({ where: { email: email } });
+        }
+
+        if (invite.newuser) {
+
+            let hashpass = await bcrypt.hash(password, 10);
+
+            user = await this._prismaService.user.create({
+                data: {
+                    email: email,
+                    authData: {
+                        password: hashpass
+                    },
+                    profileData: {
+                        firstname: invite.name,
+                        lastname: "",
+                        status: "verified",
+                    }
+                }
+            })
         }
 
         await this._prismaService.organizationUser.create({
             data: {
-                userID: userID,
+                userID: user.id,
                 organizationID: organizationID,
-                isAdmin: false
+                isAdmin: false,
+                roles: {
+                    createMany: {
+                        data: invite.roles.map((role: string) => ({ name: role }))
+                    }
+                }
             }
         });
 
-        await this._redisService.client.del(`invite:${organizationID}-${userID}`);
+        await this._redisService.client.del(`invite:${organizationID}-${email}`);
 
         return true;
     }

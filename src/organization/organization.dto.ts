@@ -15,12 +15,14 @@ export class SendInvitationDto {
     @IsNotEmpty()
     name: string
 
+    @IsNotEmpty()
+    roles: Array<string>
 }
 
 export class AcceptInvitationDto {
 
     @IsNotEmpty()
-    user_id: string
+    email: string
 
     @IsNotEmpty()
     code: string

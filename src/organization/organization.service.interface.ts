@@ -1,7 +1,7 @@
 export interface IOrganizationService {
 
     // add user
-    inviteUser(email: string, name: string, organizationID: string): Promise<boolean>
+    inviteUser(email: string, name: string, organizationID: string, roles: Array<string>): Promise<boolean>
 
     // accept invitation
     acceptInvitation(userID: string, organizationID: string, code: string, password: string | null): Promise<boolean>

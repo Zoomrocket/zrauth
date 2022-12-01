@@ -10,4 +10,7 @@ export class AddUserOrgDto {
     @IsNotEmpty()
     name: string
 
+    @IsNotEmpty()
+    roles: Array<string>
+
 }

@@ -126,7 +126,12 @@ export class AuthService implements IAuthService {
                         identifier: identifier
                     }
                 },
-                isAdmin: true
+                isAdmin: true,
+                roles: {
+                    createMany: {
+                        data: keys.DEFAULT_ROLES.map(role => ({ name: role }))
+                    }
+                }
             }
         })
         return true;

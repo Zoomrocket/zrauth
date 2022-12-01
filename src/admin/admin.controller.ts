@@ -15,7 +15,7 @@ export class AdminController {
     @Post("/organizations/users/invite-user")
     async postInvite(@Body() body: AddUserOrgDto, @Res() res: Response) {
         try {
-            await this._organizationService.inviteUser(body.email, body.name, body.organization_id);
+            await this._organizationService.inviteUser(body.email, body.name, body.organization_id, body.roles);
             return { "detail": "done" };
         } catch (err) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
