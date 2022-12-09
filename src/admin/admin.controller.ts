@@ -18,6 +18,7 @@ export class AdminController {
             await this._organizationService.inviteUser(body.email, body.name, body.organization_id, body.roles);
             return { "detail": "done" };
         } catch (err) {
+            console.log(err);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             return { detail: "unable to invite user" };
         }
