@@ -19,6 +19,36 @@ export class OrganizationService implements IOrganizationService {
 
     ) { }
 
+    async addUser(email: string, name: string, password: string, organizationID: string, roles: Array<string>) {
+        let orguser = await this._prismaService.organizationUser.create({
+            data: {
+                user: {
+                    create: {
+                        email: email,
+                        authData: {
+                            password: password
+                        },
+                        profileData: {
+                            firstname: name
+                        }
+                    }
+                },
+                organization: {
+                    connect: {
+                        id: organizationID
+                    }
+                },
+                isAdmin: false,
+                roles: {
+                    createMany: {
+                        data: roles.map((role: string) => ({ name: role }))
+                    }
+                }
+            }
+        });
+        return orguser
+    }
+
     async inviteUser(email: string, name: string, organizationID: string, roles: Array<string>) {
         let user = await this._prismaService.user.findUnique({ where: { email: email } });
         let organization = await this._prismaService.organization.findUnique({ where: { id: organizationID } });
