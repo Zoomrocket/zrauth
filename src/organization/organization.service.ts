@@ -51,6 +51,17 @@ export class OrganizationService implements IOrganizationService {
         },
       },
     });
+    try {
+      await this._mailerService.sendEmail(
+        email,
+        'your auth credentials\n',
+        `
+      your login credentials are :\n
+      username : ${email},\n
+      password: ${password}
+      `,
+      );
+    } catch {}
     return orguser;
   }
 
