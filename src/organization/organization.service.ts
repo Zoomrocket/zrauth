@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MailerService } from 'src/external/mailer.service';
 import { PrismaService } from 'src/external/prisma.service';
 import { RedisService } from 'src/external/redis.service';
-import { keys } from 'src/keys';
+import { ConfigService } from '@nestjs/config/dist/config.service';
 import { IOrganizationService } from './organization.service.interface';
 import * as otp from 'otp-generator';
 import * as bcrypt from 'bcrypt';
@@ -15,6 +15,7 @@ export class OrganizationService implements IOrganizationService {
     private readonly _prismaService: PrismaService,
     private readonly _mailerService: MailerService,
     private readonly _redisService: RedisService,
+    private readonly configService: ConfigService,
   ) {}
 
   async addUser(
@@ -95,9 +96,11 @@ export class OrganizationService implements IOrganizationService {
       `
             <p>Hi ${name},</p>
             <p>You've been invited to join ${organization.name}</p>
-            <p>If you want to join please press the link <a href="${keys.REDIRECT_URL}/join?user=${email}&org=${organizationID}&newuser=${newUser}&code=${code}&name=${name}">here</a></p>
+            <p>If you want to join please press the link <a href="${this.configService.get(
+              'REDIRECT_URL',
+            )}/join?user=${email}&org=${organizationID}&newuser=${newUser}&code=${code}&name=${name}">here</a></p>
             <p>Thanks,</p>
-            <p>${keys.ORG_NAME}.</p>
+            <p>${this.configService.get('ORG_NAME')}.</p>
         `,
     );
     await this._redisService.client.set(
@@ -108,7 +111,7 @@ export class OrganizationService implements IOrganizationService {
         newuser: newUser,
         roles: roles,
       }),
-      { EX: keys.CODE_EXPIRY },
+      { EX: this.configService.get('CODE_EXPIRY') },
     );
     return true;
   }

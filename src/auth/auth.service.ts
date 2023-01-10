@@ -5,11 +5,11 @@ import { RedisService } from 'src/external/redis.service';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import { AccessTokenClaims, RefreshTokenClaims } from './claims.interface';
-import { keys } from 'src/keys';
 import { google } from 'googleapis';
 import { IAuthService } from './auth.service.interface';
 import { randomBytes, randomUUID } from 'crypto';
 import * as otp from 'otp-generator';
+import { ConfigService } from '@nestjs/config/dist/config.service';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -17,10 +17,11 @@ export class AuthService implements IAuthService {
     private readonly _prismaService: PrismaService,
     private readonly _redisService: RedisService,
     private readonly _mailService: MailerService,
+    private readonly configService: ConfigService,
   ) {}
 
   async sendResetCode(email: string) {
-    let user = await this._prismaService.user.findUnique({
+    const user = await this._prismaService.user.findUnique({
       where: { email: email },
     });
     let code = otp.generate(6, {
@@ -31,16 +32,18 @@ export class AuthService implements IAuthService {
     });
     await this._mailService.sendEmail(
       user.email,
-      `${keys.ORG_NAME}: Reset your password`,
+      `${this.configService.get('ORG_NAME')}: Reset your password`,
       `
             <p>Hi ${user.profileData['firstname']},</p>
-            <p>Please reset your password <a href="${keys.REDIRECT_URL}/auth/reset?email=${email}&code=${code}">here</a><p>
+            <p>Please reset your password <a href="${this.configService.get(
+              'REDIRECT_URL',
+            )}/auth/reset?email=${email}&code=${code}">here</a><p>
             <p>Thanks,</p>
-            <p>${keys.ORG_NAME}.</p>
+            <p>${this.configService.get('ORG_NAME')}.</p>
         `,
     );
     await this._redisService.client.set(`reset:${user.email}`, code, {
-      EX: keys.CODE_EXPIRY,
+      EX: this.configService.get('CODE_EXPIRY'),
     });
     return true;
   }
@@ -86,7 +89,7 @@ export class AuthService implements IAuthService {
       jti: access_id,
       typ: 'Bearer',
       scope: 'email profile',
-      iss: keys.SERVER_URL,
+      iss: this.configService.get('SERVER_URL'),
       user_id: user.id,
       email: user.email,
       profile_data: user.profileData,
@@ -103,16 +106,24 @@ export class AuthService implements IAuthService {
       jti: refresh_id,
       user_id: user.id,
       typ: 'Refresh',
-      iss: keys.SERVER_URL,
+      iss: this.configService.get('SERVER_URL'),
       scope: 'email profile',
     };
 
-    let accessToken = jwt.sign(accessClaims, keys.ACCESS_SECRET, {
-      expiresIn: keys.ACCESS_TOKEN_EXP,
-    });
-    let refreshToken = jwt.sign(refreshClaims, keys.REFRESH_SECRET, {
-      expiresIn: keys.REFRESH_TOKEN_EXP,
-    });
+    let accessToken = jwt.sign(
+      accessClaims,
+      this.configService.get('ACCESS_SECRET'),
+      {
+        expiresIn: this.configService.get('ACCESS_TOKEN_EXP'),
+      },
+    );
+    let refreshToken = jwt.sign(
+      refreshClaims,
+      this.configService.get('REFRESH_SECRET'),
+      {
+        expiresIn: this.configService.get('REFRESH_TOKEN_EXP'),
+      },
+    );
 
     return { accessToken, refreshToken };
   }
@@ -124,7 +135,7 @@ export class AuthService implements IAuthService {
     lastname: string,
     organization: string,
   ) {
-    let hashpass: string = '';
+    let hashpass = '';
 
     if (!password) throw new Error('password required for email signup');
     hashpass = await bcrypt.hash(password, 10);
@@ -157,7 +168,9 @@ export class AuthService implements IAuthService {
         isAdmin: true,
         roles: {
           createMany: {
-            data: keys.DEFAULT_ROLES.map((role) => ({ name: role })),
+            data: this.configService
+              .get('DEFAULT_ROLES')
+              .map((role) => ({ name: role })),
           },
         },
       },
@@ -190,9 +203,11 @@ export class AuthService implements IAuthService {
 
   generateGoogleSignInURL() {
     const client = new google.auth.OAuth2({
-      clientId: keys.GOOGLE_CLIENT_ID,
-      clientSecret: keys.GOOGLE_CLIENT_SECRET,
-      redirectUri: `${keys.SERVER_URL}/v1/auth/login-google-redirect`,
+      clientId: this.configService.get('GOOGLE_CLIENT_ID'),
+      clientSecret: this.configService.get('GOOGLE_CLIENT_SECRET'),
+      redirectUri: `${this.configService.get(
+        'SERVER_URL',
+      )}/v1/auth/login-google-redirect`,
     });
 
     const scopes = ['email', 'openid', 'profile'];
@@ -207,9 +222,11 @@ export class AuthService implements IAuthService {
 
   async loginWithGoogle(code: string) {
     const client = new google.auth.OAuth2({
-      clientId: keys.GOOGLE_CLIENT_ID,
-      clientSecret: keys.GOOGLE_CLIENT_SECRET,
-      redirectUri: `${keys.SERVER_URL}/v1/auth/login-google-redirect`,
+      clientId: this.configService.get('GOOGLE_CLIENT_ID'),
+      clientSecret: this.configService.get('GOOGLE_CLIENT_SECRET'),
+      redirectUri: `${this.configService.get(
+        'SERVER_URL',
+      )}/v1/auth/login-google-redirect`,
     });
     let { tokens } = await client.getToken(code);
     let googleProfile = jwt.decode(tokens.id_token);
@@ -256,7 +273,10 @@ export class AuthService implements IAuthService {
   }
 
   async refreshAccessToken(refreshToken: string) {
-    let decoded = jwt.verify(refreshToken, keys.REFRESH_SECRET);
+    let decoded = jwt.verify(
+      refreshToken,
+      this.configService.get('REFRESH_SECRET'),
+    );
 
     let userData = await this._prismaService.user.findUnique({
       where: {

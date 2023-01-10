@@ -7,8 +7,8 @@ import {
   Res,
   HttpStatus,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config/dist';
 import { Response } from 'express';
-import { keys } from 'src/keys';
 import {
   LoginEmailDto,
   LoginGoogleDto,
@@ -20,7 +20,10 @@ import { AuthService } from './auth.service';
 
 @Controller('/v1/auth')
 export class AuthController {
-  constructor(private readonly _authService: AuthService) {}
+  constructor(
+    private readonly _authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('/signup')
   async postSignup(@Body() body: SignupDto, @Res() res: Response) {
@@ -108,7 +111,9 @@ export class AuthController {
     try {
       let result = await this._authService.loginWithGoogle(body.code);
       res.redirect(
-        `${keys.REDIRECT_URL}?access_token=${result.accessToken}&refresh_token=${result.refreshToken}`,
+        `${this.configService.get('REDIRECT_URL')}?access_token=${
+          result.accessToken
+        }&refresh_token=${result.refreshToken}`,
       );
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);

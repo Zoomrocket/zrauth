@@ -6,9 +6,14 @@ import { OrganizationModule } from './organization/organization.module';
 import { SecurityModule } from './security/security.module';
 import { UtilsModule } from './utils/utils.module';
 import { AdminModule } from './admin/admin.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      expandVariables: true,
+      isGlobal: true,
+    }),
     ExternalModule,
     AuthModule,
     UserModule,
