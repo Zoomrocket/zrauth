@@ -6,14 +6,7 @@ import { OrganizationService } from 'src/organization/organization.service';
 import { AdminController } from './admin.controller';
 
 @Module({
-    providers: [
-        PrismaService,
-        OrganizationService,
-        RedisService,
-        MailerService
-    ],
-    controllers: [
-        AdminController
-    ]
+  providers: [PrismaService, OrganizationService, RedisService, MailerService],
+  controllers: [AdminController],
 })
 export class AdminModule {}
