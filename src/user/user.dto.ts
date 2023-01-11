@@ -1,21 +1,17 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty } from 'class-validator';
 
 export class UpdatePasswordDto {
+  @IsNotEmpty()
+  current: string;
 
-    @IsNotEmpty()
-    current: string
-
-    @IsNotEmpty()
-    update: string
-
+  @IsNotEmpty()
+  update: string;
 }
 
 export class UpdateProfileDto {
+  @IsNotEmpty()
+  firstname: string;
 
-    @IsNotEmpty()
-    firstname: string
-
-    @IsNotEmpty()
-    lastname: string
-
+  @IsNotEmpty()
+  lastname: string;
 }

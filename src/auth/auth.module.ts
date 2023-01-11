@@ -6,14 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 @Module({
-    providers: [
-        PrismaService,
-        AuthService,
-        RedisService,
-        MailerService
-    ],
-    controllers: [
-        AuthController
-    ]
+  providers: [PrismaService, AuthService, RedisService, MailerService],
+  controllers: [AuthController],
 })
-export class AuthModule { }
+export class AuthModule {}
