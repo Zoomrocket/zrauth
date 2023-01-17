@@ -25,13 +25,14 @@ export class OrganizationService implements IOrganizationService {
     organizationID: string,
     roles: Array<string>,
   ) {
+    let hashpass = await bcrypt.hash(password, 10);
     let orguser = await this._prismaService.organizationUser.create({
       data: {
         user: {
           create: {
             email: email,
             authData: {
-              password: password,
+              password: hashpass,
             },
             profileData: {
               firstname: name,
