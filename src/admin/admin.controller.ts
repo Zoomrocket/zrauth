@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   HttpStatus,
+  Param,
+  Patch,
   Post,
   Res,
   UseGuards,
@@ -9,7 +11,7 @@ import {
 import { Response } from 'express';
 import { OrganizationService } from 'src/organization/organization.service';
 import { AdminGuard } from 'src/security/admin.guard';
-import { AddUserOrgDto, InviteUserOrgDto } from './admin.dto';
+import { AddUserOrgDto, InviteUserOrgDto, updateUserOrgDto } from './admin.dto';
 
 @UseGuards(AdminGuard)
 @Controller('/v1/admin')
@@ -41,7 +43,30 @@ export class AdminController {
         body.name,
         body.password,
         body.organization_id,
-        body.roles,
+        body.roles[0],
+        body.extra_profile_data,
+      );
+      return user;
+    } catch (err) {
+      console.log(err);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: 'unable to add user' };
+    }
+  }
+
+  @Patch('/organizations/users/:id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() body: updateUserOrgDto,
+    @Res() res: Response,
+  ) {
+    try {
+      let user = await this._organizationService.updateUser(
+        id,
+        body?.email,
+        body?.name,
+        body?.password,
+        body?.extra_profile_data,
       );
       return user;
     } catch (err) {

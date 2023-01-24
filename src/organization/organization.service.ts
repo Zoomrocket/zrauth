@@ -21,6 +21,7 @@ export class OrganizationService implements IOrganizationService {
   async addUser(
     email: string,
     name: string,
+    extraProfileData: any,
     password: string,
     organizationID: string,
     roles: Array<string>,
@@ -35,6 +36,7 @@ export class OrganizationService implements IOrganizationService {
               password: hashpass,
             },
             profileData: {
+              ...extraProfileData,
               firstname: name,
             },
           },
@@ -310,5 +312,28 @@ export class OrganizationService implements IOrganizationService {
     });
 
     return true;
+  }
+
+  async updateUser(
+    id: string,
+    email?: string,
+    name?: string,
+    password?: string,
+    extra_profile_data?: any,
+  ) {
+    let hashpass = password ? await bcrypt.hash(password, 10) : null;
+    return await this._prismaService.user.update({
+      where: { id: id },
+      data: {
+        email: email,
+        authData: {
+          password: hashpass,
+        },
+        profileData: {
+          ...extra_profile_data,
+          firstname: name,
+        },
+      },
+    });
   }
 }
