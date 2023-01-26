@@ -21,10 +21,10 @@ export class OrganizationService implements IOrganizationService {
   async addUser(
     email: string,
     name: string,
-    extraProfileData: any,
     password: string,
     organizationID: string,
-    roles: Array<string>,
+    extraProfileData: any,
+    roles: string[],
   ) {
     let hashpass = await bcrypt.hash(password, 10);
     let orguser = await this._prismaService.organizationUser.create({
@@ -316,22 +316,40 @@ export class OrganizationService implements IOrganizationService {
 
   async updateUser(
     id: string,
-    email?: string,
     name?: string,
-    password?: string,
+    role?: Array<string>,
     extra_profile_data?: any,
   ) {
-    let hashpass = password ? await bcrypt.hash(password, 10) : null;
+    if (role) {
+      role.map(async (r) => {
+        const exists = await this._prismaService.role.findFirst({
+          where: {
+            name: r,
+            organizationUser: {
+              id,
+            },
+          },
+        });
+        if (!exists) {
+          await this._prismaService.role.updateMany({
+            where: {
+              organizationUser: {
+                id,
+              },
+            },
+            data: {
+              name: r,
+            },
+          });
+        }
+      });
+    }
     return await this._prismaService.user.update({
       where: { id: id },
       data: {
-        email: email,
-        authData: {
-          password: hashpass,
-        },
         profileData: {
-          ...extra_profile_data,
           firstname: name,
+          ...extra_profile_data,
         },
       },
     });

@@ -43,8 +43,8 @@ export class AdminController {
         body.name,
         body.password,
         body.organization_id,
-        body.roles[0],
         body.extra_profile_data,
+        body.roles,
       );
       return user;
     } catch (err) {
@@ -63,9 +63,8 @@ export class AdminController {
     try {
       let user = await this._organizationService.updateUser(
         id,
-        body?.email,
         body?.name,
-        body?.password,
+        body?.roles,
         body?.extra_profile_data,
       );
       return user;

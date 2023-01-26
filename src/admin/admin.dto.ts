@@ -28,22 +28,13 @@ export class AddUserOrgDto {
   name: string;
 
   @IsNotEmpty()
-  roles: Array<string>;
+  roles: string[];
 
   @IsOptional()
   extra_profile_data?: any;
 }
 
 export class updateUserOrgDto {
-  @IsOptional()
-  email: string;
-
-  @IsOptional()
-  password: string;
-
-  @IsOptional()
-  organization_id: string;
-
   @IsOptional()
   name: string;
 
