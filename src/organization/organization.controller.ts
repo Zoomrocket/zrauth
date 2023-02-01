@@ -136,13 +136,13 @@ export class OrganizationController {
     @Res() res: Response,
   ) {
     try {
-      await this._organizationService.inviteUser(
+      return this._organizationService.inviteUser(
         body.email,
         body.name,
         params.oid,
         body.roles,
+        body.extra_profile_data || {},
       );
-      return { detail: 'done' };
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
       return { detail: 'unable to invite user' };
