@@ -8,7 +8,7 @@ import * as otp from 'otp-generator';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { User } from '@prisma/client';
-
+import { v4 as uuid } from 'uuid';
 @Injectable()
 export class OrganizationService implements IOrganizationService {
   constructor(
@@ -23,7 +23,8 @@ export class OrganizationService implements IOrganizationService {
     name: string,
     password: string,
     organizationID: string,
-    roles: Array<string>,
+    extraProfileData: any,
+    roles: string[],
   ) {
     let hashpass = await bcrypt.hash(password, 10);
     let orguser = await this._prismaService.organizationUser.create({
@@ -35,6 +36,7 @@ export class OrganizationService implements IOrganizationService {
               password: hashpass,
             },
             profileData: {
+              ...extraProfileData,
               firstname: name,
             },
           },
@@ -71,7 +73,8 @@ export class OrganizationService implements IOrganizationService {
     name: string,
     organizationID: string,
     roles: Array<string>,
-  ) {
+    extraProfileData?: any,
+  ): Promise<any> {
     let user = await this._prismaService.user.findUnique({
       where: { email: email },
     });
@@ -115,17 +118,20 @@ export class OrganizationService implements IOrganizationService {
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
     );
+    const user_id = uuid();
     await this._redisService.client.set(
       `invite:${organizationID}-${email}`,
       JSON.stringify({
         code: code,
         name: name,
+        user_id,
+        extraProfileData,
         newuser: newUser,
         roles: roles,
       }),
       { EX: this.configService.get('CODE_EXPIRY') },
     );
-    return true;
+    return { id: user_id };
   }
 
   async acceptInvitation(
@@ -157,11 +163,13 @@ export class OrganizationService implements IOrganizationService {
 
       user = await this._prismaService.user.create({
         data: {
+          id: invite.user_id,
           email: email,
           authData: {
             password: hashpass,
           },
           profileData: {
+            ...invite.extraProfileData,
             firstname: invite.name,
             lastname: '',
             status: 'verified',
@@ -310,5 +318,46 @@ export class OrganizationService implements IOrganizationService {
     });
 
     return true;
+  }
+
+  async updateUser(
+    id: string,
+    name?: string,
+    role?: Array<string>,
+    extra_profile_data?: any,
+  ) {
+    if (role) {
+      role.map(async (r) => {
+        const exists = await this._prismaService.role.findFirst({
+          where: {
+            name: r,
+            organizationUser: {
+              id,
+            },
+          },
+        });
+        if (!exists) {
+          await this._prismaService.role.updateMany({
+            where: {
+              organizationUser: {
+                id,
+              },
+            },
+            data: {
+              name: r,
+            },
+          });
+        }
+      });
+    }
+    return await this._prismaService.user.update({
+      where: { id: id },
+      data: {
+        profileData: {
+          firstname: name,
+          ...extra_profile_data,
+        },
+      },
+    });
   }
 }

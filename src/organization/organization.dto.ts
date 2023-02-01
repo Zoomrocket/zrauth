@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateOrganizationDto {
   @IsNotEmpty()
@@ -15,6 +15,9 @@ export class SendInvitationDto {
 
   @IsNotEmpty()
   roles: Array<string>;
+
+  @IsOptional()
+  extra_profile_data?: any;
 }
 
 export class AcceptInvitationDto {
