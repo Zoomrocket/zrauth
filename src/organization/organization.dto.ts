@@ -18,6 +18,9 @@ export class SendInvitationDto {
 
   @IsOptional()
   extra_profile_data?: any;
+
+  @IsOptional()
+  isInvite: boolean;
 }
 
 export class AcceptInvitationDto {

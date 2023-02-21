@@ -90,14 +90,16 @@ export class OrganizationService implements IOrganizationService {
     let orgUser = await this._prismaService.organizationUser.findFirst({
       where: {
         organizationID: organizationID,
-        userID: userId,
+        user: {
+          email: email,
+        },
       },
     });
 
     if (!organization) {
       throw new Error('organization not found');
     } else {
-      if (orgUser) {
+      if (orgUser?.organizationID === organizationID) {
         throw new Error('already part of organization');
       }
     }
@@ -115,7 +117,7 @@ export class OrganizationService implements IOrganizationService {
           },
           authData: {
             password: bcrypt.hashSync(pass, 10),
-            status: isInvite ? 1 : 2,
+            status: isInvite == true ? 1 : 2,
           },
         },
       });
@@ -178,6 +180,8 @@ export class OrganizationService implements IOrganizationService {
         digits: true,
         upperCaseAlphabets: true,
       });
+      console.log('sending mail');
+
       await this._mailerService.sendEmail(
         email,
         `Invitation: You've been invited to join ${organization.name}`,

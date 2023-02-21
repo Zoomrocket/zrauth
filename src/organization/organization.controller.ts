@@ -141,6 +141,7 @@ export class OrganizationController {
         params.oid,
         body.roles,
         body.extra_profile_data || {},
+        body.isInvite ? true : false,
       );
     } catch (err) {
       res.status(HttpStatus.FORBIDDEN);
