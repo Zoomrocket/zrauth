@@ -5,6 +5,7 @@ import { RedisService } from 'src/external/redis.service';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { IOrganizationService } from './organization.service.interface';
 import * as otp from 'otp-generator';
+import { generate as GeneratePass } from 'generate-password';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { User } from '@prisma/client';
@@ -74,64 +75,135 @@ export class OrganizationService implements IOrganizationService {
     organizationID: string,
     roles: Array<string>,
     extraProfileData?: any,
+    isInvite?: boolean,
   ): Promise<any> {
     let user = await this._prismaService.user.findUnique({
       where: { email: email },
     });
+
+    let userId = user?.id;
+    const pass = GeneratePass();
+
     let organization = await this._prismaService.organization.findUnique({
       where: { id: organizationID },
     });
-    if (!organization) {
-      throw new Error('no organization exists');
-    }
-    let newUser = false;
+    let orgUser = await this._prismaService.organizationUser.findFirst({
+      where: {
+        organizationID: organizationID,
+        userID: userId,
+      },
+    });
 
-    if (user) {
-      let orgUser = await this._prismaService.organizationUser.findFirst({
-        where: { organizationID: organization.id, userID: user.id },
-      });
+    if (!organization) {
+      throw new Error('organization not found');
+    } else {
       if (orgUser) {
         throw new Error('already part of organization');
       }
     }
 
+    const user_id = uuid();
     if (!user) {
-      newUser = true;
+      const user = await this._prismaService.user.create({
+        data: {
+          id: user_id,
+          email: email,
+          profileData: {
+            ...extraProfileData,
+            name,
+            status: 'verified',
+          },
+          authData: {
+            password: bcrypt.hashSync(pass, 10),
+            status: isInvite ? 1 : 2,
+          },
+        },
+      });
+      userId = user.id;
     }
 
-    let code = otp.generate(6, {
-      lowerCaseAlphabets: false,
-      specialChars: false,
-      digits: true,
-      upperCaseAlphabets: true,
+    await this._prismaService.user.update({
+      where: { id: userId },
+      data: {
+        profileData: {
+          ...extraProfileData,
+          name,
+          status: 'verified',
+        },
+      },
     });
-    await this._mailerService.sendEmail(
-      email,
-      `Invitation: You've been invited to join ${organization.name}`,
-      `
+
+    await this._prismaService.organizationUser.create({
+      data: {
+        userID: userId,
+        isAdmin: false,
+        organizationID: organizationID,
+        roles: {
+          createMany: {
+            data: roles.map((role: string) => ({ name: role })),
+          },
+        },
+      },
+    });
+
+    if (user?.id) {
+      await this._mailerService.sendEmail(
+        email,
+        `Invitation: You've have joined ${organization.name}`,
+        `
+          <p>Hi ${name},</p>
+          <p>You've been joined  ${organization.name}</p>
+          <p>username: ${email}</p>
+      `,
+      );
+    }
+    if (!isInvite) {
+      await this._mailerService.sendEmail(
+        email,
+        `Invitation: You've have joined ${organization.name}`,
+        `
+            <p>Hi ${name},</p>
+            <p>You've been joined  ${organization.name}</p>
+            <p>username: ${email}</p>
+            <p>password: ${pass}</p>
+            <p>Thanks,</p>
+            <p>${this.configService.get('ORG_NAME')}.</p>
+        `,
+      );
+      return { id: user_id };
+    } else {
+      let code = otp.generate(6, {
+        lowerCaseAlphabets: false,
+        specialChars: false,
+        digits: true,
+        upperCaseAlphabets: true,
+      });
+      await this._mailerService.sendEmail(
+        email,
+        `Invitation: You've been invited to join ${organization.name}`,
+        `
             <p>Hi ${name},</p>
             <p>You've been invited to join ${organization.name}</p>
             <p>If you want to join please press the link <a href="${this.configService.get(
               'REDIRECT_URL',
-            )}/join?user=${email}&org=${organizationID}&newuser=${newUser}&code=${code}&name=${name}">here</a></p>
+            )}/join?user=${email}&org=${organizationID}&code=${code}&name=${name}">here</a></p>
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
-    );
-    const user_id = uuid();
-    await this._redisService.client.set(
-      `invite:${organizationID}-${email}`,
-      JSON.stringify({
-        code: code,
-        name: name,
-        user_id,
-        extraProfileData,
-        newuser: newUser,
-        roles: roles,
-      }),
-      { EX: this.configService.get('CODE_EXPIRY') },
-    );
-    return { id: user_id };
+      );
+      console.log('setting invite');
+
+      await this._redisService.client.set(
+        `invite:${organizationID}-${email}`,
+        JSON.stringify({
+          code: code,
+          name: name,
+          user_id,
+        }),
+        { EX: this.configService.get('CODE_EXPIRY') },
+      );
+      return { id: user_id };
+    }
   }
 
   async acceptInvitation(
@@ -150,43 +222,14 @@ export class OrganizationService implements IOrganizationService {
       throw new Error('unable to verify code');
     }
 
-    let user: User | null = null;
-
-    if (!invite.newuser) {
-      user = await this._prismaService.user.findUnique({
-        where: { email: email },
-      });
-    }
-
-    if (invite.newuser) {
-      let hashpass = await bcrypt.hash(password, 10);
-
-      user = await this._prismaService.user.create({
-        data: {
-          id: invite.user_id,
-          email: email,
-          authData: {
-            password: hashpass,
-          },
-          profileData: {
-            ...invite.extraProfileData,
-            firstname: invite.name,
-            lastname: '',
-            status: 'verified',
-          },
-        },
-      });
-    }
-
-    await this._prismaService.organizationUser.create({
+    await this._prismaService.user.update({
+      where: {
+        id: invite.user_id,
+      },
       data: {
-        userID: user.id,
-        organizationID: organizationID,
-        isAdmin: false,
-        roles: {
-          createMany: {
-            data: invite.roles.map((role: string) => ({ name: role })),
-          },
+        authData: {
+          password: bcrypt.hashSync(password, 10),
+          status: 2,
         },
       },
     });

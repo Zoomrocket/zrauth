@@ -127,8 +127,7 @@ export class OrganizationController {
     }
   }
 
-  @UseGuards(AuthGuard)
-  @UseGuards(OrganizationAdminGuard)
+  // @UseGuards(AuthGuard)
   @Post('/:oid/users/invite-user')
   async postInvite(
     @Param() params: any,
@@ -144,7 +143,7 @@ export class OrganizationController {
         body.extra_profile_data || {},
       );
     } catch (err) {
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      res.status(HttpStatus.FORBIDDEN);
       return { detail: 'unable to invite user' };
     }
   }
