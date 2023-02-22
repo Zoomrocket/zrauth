@@ -27,10 +27,10 @@ model User {
 }
 
 model Organization {
-  id   String @id @default(uuid())
+  id String @id @default(uuid())
 
   identifier String @unique
-  
+
   name String
 
   maxUsers Int @default(5)
@@ -63,6 +63,9 @@ model OrganizationUser {
 
   // Join Tables
   roles Role[]
+
+  // Join Tables
+  @@unique([userID, organizationID])
 }
 
 model Role {
