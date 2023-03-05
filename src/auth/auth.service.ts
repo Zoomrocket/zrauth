@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MailerService } from 'src/external/mailer.service';
+import { MailerService } from '@nestjs-modules/mailer';
 import { PrismaService } from 'src/external/prisma.service';
 import { RedisService } from 'src/external/redis.service';
 import * as jwt from 'jsonwebtoken';
@@ -30,10 +30,10 @@ export class AuthService implements IAuthService {
       digits: true,
       upperCaseAlphabets: true,
     });
-    await this._mailService.sendEmail(
-      user.email,
-      `${this.configService.get('ORG_NAME')}: Reset your password`,
-      `
+    await this._mailService.sendMail({
+      to: user.email,
+      subject: `${this.configService.get('ORG_NAME')}: Reset your password`,
+      html: `
             <p>Hi ${user.profileData['firstname']},</p>
             <p>Please reset your password <a href="${this.configService.get(
               'REDIRECT_URL',
@@ -41,7 +41,7 @@ export class AuthService implements IAuthService {
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
-    );
+    });
     await this._redisService.client.set(`reset:${user.email}`, code, {
       EX: this.configService.get('CODE_EXPIRY'),
     });
