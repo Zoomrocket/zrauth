@@ -150,21 +150,26 @@ export class OrganizationService implements IOrganizationService {
     });
 
     if (user?.id) {
-      await this._mailerService.sendMail({
-        to: email,
-        subject: `Invitation: You've have joined ${organization.name}`,
-        html: `
+      await this._mailerService
+        .sendMail({
+          to: email,
+          subject: `Invitation: You've have joined ${organization.name}`,
+          html: `
           <p>Hi ${name},</p>
           <p>You've been joined  ${organization.name}</p>
           <p>username: ${email}</p>
       `,
-      });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
     if (!isInvite) {
-      await this._mailerService.sendMail({
-        to: email,
-        subject: `Invitation: You've have joined ${organization.name}`,
-        html: `
+      await this._mailerService
+        .sendMail({
+          to: email,
+          subject: `Invitation: You've have joined ${organization.name}`,
+          html: `
             <p>Hi ${name},</p>
             <p>You've been joined  ${organization.name}</p>
             <p>username: ${email}</p>
@@ -172,7 +177,10 @@ export class OrganizationService implements IOrganizationService {
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
-      });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       return { id: user_id };
     } else {
       let code = otp.generate(6, {
@@ -183,10 +191,11 @@ export class OrganizationService implements IOrganizationService {
       });
       console.log('sending mail');
 
-      await this._mailerService.sendMail({
-        to: email,
-        subject: `Invitation: You've been invited to join ${organization.name}`,
-        html: `
+      await this._mailerService
+        .sendMail({
+          to: email,
+          subject: `Invitation: You've been invited to join ${organization.name}`,
+          html: `
             <p>Hi ${name},</p>
             <p>You've been invited to join ${organization.name}</p>
             <p>If you want to join please press the link <a href="${this.configService.get(
@@ -195,7 +204,10 @@ export class OrganizationService implements IOrganizationService {
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
-      });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       console.log('setting invite');
 
       await this._redisService.client.set(
