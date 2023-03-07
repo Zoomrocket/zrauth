@@ -15,9 +15,12 @@ export class SendInvitationDto {
 
   @IsNotEmpty()
   roles: Array<string>;
-
+  
   @IsOptional()
   extra_profile_data?: any;
+  
+  @IsNotEmpty()
+  password?: any;
 
   @IsOptional()
   isInvite: boolean;

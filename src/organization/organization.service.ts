@@ -73,17 +73,17 @@ export class OrganizationService implements IOrganizationService {
   async inviteUser(
     email: string,
     name: string,
+    password: string,
     organizationID: string,
     roles: Array<string>,
     extraProfileData?: any,
     isInvite?: boolean,
-  ): Promise<any> {
+  ):Promise<any> {
     let user = await this._prismaService.user.findUnique({
       where: { email: email },
     });
 
     let userId = user?.id;
-    const pass = GeneratePass();
 
     let organization = await this._prismaService.organization.findUnique({
       where: { id: organizationID },
@@ -117,7 +117,7 @@ export class OrganizationService implements IOrganizationService {
             status: 'verified',
           },
           authData: {
-            password: bcrypt.hashSync(pass, 10),
+            password: bcrypt.hashSync(password, 10),
             status: isInvite == true ? 1 : 2,
           },
         },
@@ -173,7 +173,7 @@ export class OrganizationService implements IOrganizationService {
             <p>Hi ${name},</p>
             <p>You've been joined  ${organization.name}</p>
             <p>username: ${email}</p>
-            <p>password: ${pass}</p>
+            <p>password: ${password}</p>
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
