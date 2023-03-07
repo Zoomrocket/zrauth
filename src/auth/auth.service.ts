@@ -143,6 +143,8 @@ export class AuthService implements IAuthService {
     let identifier = `${organization.toLowerCase()}-${randomBytes(6).toString(
       'hex',
     )}`;
+      
+    let defaultRoles = ["manager"];
 
     await this._prismaService.organizationUser.create({
       data: {
@@ -168,9 +170,7 @@ export class AuthService implements IAuthService {
         isAdmin: true,
         roles: {
           createMany: {
-            data: this.configService
-              .get('DEFAULT_ROLES')
-              .map((role) => ({ name: role })),
+            data: defaultRoles.map((role) => ({ name: role })),
           },
         },
       },
