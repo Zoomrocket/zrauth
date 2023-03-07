@@ -66,6 +66,7 @@ export class AuthController {
       );
       return result;
     } catch (err) {
+      console.log(err);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
       return { detail: 'unable to login' };
     }

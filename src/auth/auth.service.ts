@@ -188,7 +188,8 @@ export class AuthService implements IAuthService {
     }
 
     let match = await bcrypt.compare(password, user.authData['password']);
-
+    console.log("password compare",match);
+    
     if (!match) {
       throw new Error('passwords dont match');
     }
