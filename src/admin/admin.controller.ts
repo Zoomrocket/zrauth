@@ -24,6 +24,7 @@ export class AdminController {
       await this._organizationService.inviteUser(
         body.email,
         body.name,
+        body.password,
         body.organization_id,
         body.roles,
       );

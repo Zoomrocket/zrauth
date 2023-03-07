@@ -3,6 +3,7 @@ export interface IOrganizationService {
   inviteUser(
     email: string,
     name: string,
+    password: string,
     organizationID: string,
     roles: Array<string>,
   ): Promise<boolean>;

@@ -11,6 +11,9 @@ export class InviteUserOrgDto {
   name: string;
 
   @IsNotEmpty()
+  password: string;
+
+  @IsNotEmpty()
   roles: Array<string>;
 }
 

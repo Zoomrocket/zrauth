@@ -138,6 +138,7 @@ export class OrganizationController {
       return this._organizationService.inviteUser(
         body.email,
         body.name,
+        body.password,
         params.oid,
         body.roles,
         body.extra_profile_data || {},
