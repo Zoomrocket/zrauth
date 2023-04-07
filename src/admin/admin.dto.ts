@@ -47,3 +47,16 @@ export class updateUserOrgDto {
   @IsOptional()
   extra_profile_data?: any;
 }
+
+export class EditOrgDto {
+
+  @IsNotEmpty()
+  id: string
+
+  @IsNotEmpty()
+  name: string
+
+  @IsNotEmpty()
+  organizationData: any
+
+}

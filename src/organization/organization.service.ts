@@ -17,12 +17,25 @@ export class OrganizationService implements IOrganizationService {
     private readonly _mailerService: MailerService,
     private readonly _redisService: RedisService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
 
   async fetchAllOrganizations() {
     let organizations = await this._prismaService.organization.findMany();
     return organizations;
+  }
+
+  async editOrganization(id: string, name: string, organizationData: any) {
+    await this._prismaService.organization.update({
+      where: {
+        id: id
+      },
+      data: {
+        name: name,
+        orgData: organizationData
+      }
+    })
+    return "ok"
   }
 
   async addUser(
@@ -72,7 +85,7 @@ export class OrganizationService implements IOrganizationService {
 
       `,
       });
-    } catch {}
+    } catch { }
     return orguser;
   }
 
@@ -84,7 +97,7 @@ export class OrganizationService implements IOrganizationService {
     roles: Array<string>,
     extraProfileData?: any,
     isInvite?: boolean,
-  ):Promise<any> {
+  ): Promise<any> {
     let user = await this._prismaService.user.findUnique({
       where: { email: email },
     });
@@ -205,8 +218,8 @@ export class OrganizationService implements IOrganizationService {
             <p>Hi ${name},</p>
             <p>You've been invited to join ${organization.name}</p>
             <p>If you want to join please press the link <a href="${this.configService.get(
-              'REDIRECT_URL',
-            )}/join?user=${email}&org=${organizationID}&code=${code}&name=${name}">here</a></p>
+            'REDIRECT_URL',
+          )}/join?user=${email}&org=${organizationID}&code=${code}&name=${name}">here</a></p>
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
