@@ -134,6 +134,7 @@ export class AuthService implements IAuthService {
     firstname: string,
     lastname: string,
     organization: string,
+    organizationData: any
   ) {
     let hashpass = '';
 
@@ -165,6 +166,7 @@ export class AuthService implements IAuthService {
           create: {
             name: organization,
             identifier: identifier,
+            orgData: organizationData
           },
         },
         isAdmin: true,

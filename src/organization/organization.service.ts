@@ -19,6 +19,12 @@ export class OrganizationService implements IOrganizationService {
     private readonly configService: ConfigService,
   ) {}
 
+
+  async fetchAllOrganizations() {
+    let organizations = await this._prismaService.organization.findMany();
+    return organizations;
+  }
+
   async addUser(
     email: string,
     name: string,

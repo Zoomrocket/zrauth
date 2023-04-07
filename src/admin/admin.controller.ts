@@ -6,7 +6,8 @@ import {
   Patch,
   Post,
   Res,
-  UseGuards,
+  Get,
+  UseGuards
 } from '@nestjs/common';
 import { Response } from 'express';
 import { OrganizationService } from 'src/organization/organization.service';
@@ -16,7 +17,19 @@ import { AddUserOrgDto, InviteUserOrgDto, updateUserOrgDto } from './admin.dto';
 @UseGuards(AdminGuard)
 @Controller('/v1/admin')
 export class AdminController {
-  constructor(private readonly _organizationService: OrganizationService) {}
+  constructor(private readonly _organizationService: OrganizationService) { }
+
+
+  @Get('/organizations')
+  async getOrganizations(@Res() res: Response) {
+    try {
+      let result = await this._organizationService.fetchAllOrganizations();
+      return result;
+    } catch (err) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to fetch organizations" }
+    }
+  }
 
   @Post('/organizations/users/invite-user')
   async postInvite(@Body() body: InviteUserOrgDto, @Res() res: Response) {

@@ -35,6 +35,8 @@ model Organization {
 
   maxUsers Int @default(5)
 
+  orgData Json?
+
   // Time Reference
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -65,7 +67,7 @@ model OrganizationUser {
   roles Role[]
 
   // Join Tables
-  @@unique([userID, organizationID])
+  // @@unique([userID, organizationID])
 }
 
 model Role {

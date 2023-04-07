@@ -34,6 +34,7 @@ export class AuthController {
         body.firstname,
         body.lastname,
         body.organization,
+        body.organizationData
       );
       return { detail: 'created' };
     } catch (err) {

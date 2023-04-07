@@ -21,6 +21,7 @@ export interface IAuthService {
     firstname: string,
     lastname: string,
     organization: string,
+    organizationData: any
   ): Promise<boolean>;
 
   // sign in with email id

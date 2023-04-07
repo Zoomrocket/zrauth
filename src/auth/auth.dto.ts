@@ -35,6 +35,9 @@ export class SignupDto {
 
   @IsNotEmpty()
   organization: string;
+
+  organizationData: any;
+
 }
 
 export class PasswordResetDto {
