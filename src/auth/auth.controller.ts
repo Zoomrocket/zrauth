@@ -97,10 +97,10 @@ export class AuthController {
           body.code,
           body.password,
         );
-        return { detail: 'sent' };
+        return { detail: 'password updated' };
       }
       await this._authService.sendResetCode(body.email);
-      return { detail: 'password updated' };
+      return { detail: 'sent reset code' };
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
       return { detail: 'unable to reset password' };

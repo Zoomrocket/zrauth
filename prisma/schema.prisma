@@ -33,8 +33,6 @@ model Organization {
 
   name String
 
-  maxUsers Int @default(5)
-
   orgData Json?
 
   // Time Reference
