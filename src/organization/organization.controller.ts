@@ -127,7 +127,8 @@ export class OrganizationController {
     }
   }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
+  @UseGuards(OrganizationAdminGuard)
   @Post('/:oid/users/invite-user')
   async postInvite(
     @Param() params: any,
