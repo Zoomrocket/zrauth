@@ -1,9 +1,12 @@
 import { PrismaService } from 'src/external/prisma.service';
-import { IUserService } from './user.service.interface';
 import * as bcrypt from 'bcrypt';
+import { Injectable } from '@nestjs/common';
 
-export class UserService implements IUserService {
-  constructor(private readonly _prismaService: PrismaService) {}
+@Injectable()
+export class UserService {
+  constructor(
+    private readonly _prismaService: PrismaService,
+  ) { }
 
   async updatePassword(userID: string, current: string, update: string) {
     let user = await this._prismaService.user.findUnique({
@@ -21,6 +24,21 @@ export class UserService implements IUserService {
       data: user,
     });
     return true;
+  }
+
+  async changeEmailAddress(existingEmail: string, newEmail: string) {
+    
+    await this._prismaService.user.update({
+      where: {
+        email: existingEmail
+      },
+      data: {
+        email: newEmail
+      }
+    });
+
+    return 1;
+
   }
 
   async updateProfile(userID: string, firstname: string, lastname: string) {

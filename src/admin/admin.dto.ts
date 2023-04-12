@@ -60,3 +60,14 @@ export class EditOrgDto {
   organizationData: any
 
 }
+
+
+export class ChangeEmailDto {
+
+  @IsNotEmpty()
+  existing_email: string
+
+  @IsNotEmpty()
+  new_email: string
+
+}
