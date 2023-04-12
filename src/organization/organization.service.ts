@@ -10,6 +10,7 @@ import { randomBytes } from 'crypto';
 import { User } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 import { MailerService } from '@nestjs-modules/mailer';
+
 @Injectable()
 export class OrganizationService implements IOrganizationService {
   constructor(

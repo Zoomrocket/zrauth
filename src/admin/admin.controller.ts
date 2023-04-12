@@ -13,13 +13,29 @@ import {
 import { Response } from 'express';
 import { OrganizationService } from 'src/organization/organization.service';
 import { AdminGuard } from 'src/security/admin.guard';
-import { AddUserOrgDto, EditOrgDto, InviteUserOrgDto, updateUserOrgDto } from './admin.dto';
+import { AddUserOrgDto, ChangeEmailDto, EditOrgDto, InviteUserOrgDto, updateUserOrgDto } from './admin.dto';
+import { UserService } from 'src/user/user.service';
 
 @UseGuards(AdminGuard)
 @Controller('/v1/admin')
 export class AdminController {
-  constructor(private readonly _organizationService: OrganizationService) { }
+  constructor(
+    private readonly _organizationService: OrganizationService,
+    private readonly _userService: UserService
+  ) { }
 
+  @Put('/users/change-email')
+  async putUserEmail(@Body() body: ChangeEmailDto, @Res() res: Response) {
+    try {
+      if (body.existing_email !== body.new_email) {
+        await this._userService.changeEmailAddress(body.existing_email, body.new_email);
+      }
+      return { detail: "updated" };
+    } catch (err) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to change email" }
+    }
+  }
 
   @Put('/organizations')
   async putOrganization(@Body() body: EditOrgDto, @Res() res: Response) {
@@ -32,11 +48,21 @@ export class AdminController {
     }
   }
 
-
   @Get('/organizations')
   async getOrganizations(@Res() res: Response) {
     try {
       let result = await this._organizationService.fetchAllOrganizations();
+      return result;
+    } catch (err) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to fetch organizations" }
+    }
+  }
+
+  @Get('/organizations/:oid/users')
+  async getOrganizationUsers(@Param() params: any, @Res() res: Response) {
+    try {
+      let result = await this._organizationService.fetchOrganizationUsers(params.oid);
       return result;
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -101,4 +127,5 @@ export class AdminController {
       return { detail: 'unable to add user' };
     }
   }
+
 }
