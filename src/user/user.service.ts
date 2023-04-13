@@ -8,6 +8,22 @@ export class UserService {
     private readonly _prismaService: PrismaService,
   ) { }
 
+
+  async getAllUsers() {
+    let users = await this._prismaService.user.findMany({});
+    return users;
+  }
+
+  async deleteUser(userID: string) {
+    await this._prismaService.user.delete({
+      where: {
+        id: userID
+      }
+    });
+
+    return true;
+  }
+
   async updatePassword(userID: string, current: string, update: string) {
     let user = await this._prismaService.user.findUnique({
       where: { id: userID },
@@ -27,7 +43,7 @@ export class UserService {
   }
 
   async changeEmailAddress(existingEmail: string, newEmail: string) {
-    
+
     await this._prismaService.user.update({
       where: {
         email: existingEmail
