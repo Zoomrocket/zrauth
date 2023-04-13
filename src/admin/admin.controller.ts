@@ -8,7 +8,8 @@ import {
   Res,
   Get,
   Put,
-  UseGuards
+  UseGuards,
+  Delete
 } from '@nestjs/common';
 import { Response } from 'express';
 import { OrganizationService } from 'src/organization/organization.service';
@@ -59,6 +60,43 @@ export class AdminController {
     }
   }
 
+  @Get('/users')
+  async getUsers(@Res() res: Response) {
+    try {
+      let result = await this._userService.getAllUsers();
+      return result;
+    } catch (err) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to fetch users" }
+    }
+  }
+
+
+  @Delete('/users/:uid')
+  async deleteUser(@Param() params: any, @Res() res: Response) {
+    try {
+      await this._userService.deleteUser(params.uid);
+      return { detail: "deleted" };
+    } catch (err) {
+      console.log(err)
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to delete user" }
+    }
+  }
+
+  @Delete('/organizations/:oid/users/:uid')
+  async removeUserFromOrganization(@Param() params: any, @Res() res: Response) {
+    try {
+      await this._organizationService.leaveOrganization(params.uid, params.oid);
+      return { detail: "deleted" };
+    } catch (err) {
+      console.log(err)
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to delete user" }
+    }
+  }
+
+
   @Get('/organizations/:oid/users')
   async getOrganizationUsers(@Param() params: any, @Res() res: Response) {
     try {
@@ -69,6 +107,20 @@ export class AdminController {
       return { detail: "unable to fetch organizations" }
     }
   }
+
+
+  @Delete('/organizations/:oid')
+  async deleteOrganization(@Param() params: any, @Res() res: Response) {
+    try {
+      await this._organizationService.deleteOrganization(params.oid);
+      return { detail: "deleted" };
+    } catch (err) {
+      console.log(err);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to delete organization" }
+    }
+  }
+
 
   @Post('/organizations/users/invite-user')
   async postInvite(@Body() body: InviteUserOrgDto, @Res() res: Response) {

@@ -338,6 +338,7 @@ export class OrganizationService implements IOrganizationService {
     return true;
   }
 
+
   async deleteRole(userID: string, organizationID: string, roleName: string) {
     let user = await this._prismaService.organizationUser.findFirst({
       where: { userID: userID, organizationID: organizationID },
@@ -376,26 +377,56 @@ export class OrganizationService implements IOrganizationService {
       }
     }
 
-    await this._prismaService.organizationUser.delete({
+    let deleteQuery = [];
+
+    deleteQuery.push(this._prismaService.role.deleteMany({
+      where: {
+        organizationUser: user
+      }
+    }))
+
+    deleteQuery.push(this._prismaService.organizationUser.delete({
       where: { id: user.id },
-    });
+    }))
+
+    await this._prismaService.$transaction(deleteQuery);
 
     return true;
   }
 
   async deleteOrganization(organizationID: string) {
-    await this._prismaService.organization.delete({
+
+    let organizationUsers = await this._prismaService.organizationUser.findMany({
       where: {
-        id: organizationID,
-      },
-      include: {
-        users: {
-          include: {
-            roles: true,
-          },
-        },
-      },
-    });
+        organizationID: organizationID
+      }
+    })
+
+    let deleteQuery = [];
+
+    for (let organizationUser of organizationUsers) {
+
+      deleteQuery.push(this._prismaService.role.deleteMany({
+        where: {
+          organizationUser: organizationUser
+        }
+      }))
+
+      deleteQuery.push(this._prismaService.organizationUser.delete({
+        where: {
+          id: organizationUser.id
+        }
+      }))
+
+    }
+
+    deleteQuery.push(this._prismaService.organization.delete({
+      where: {
+        id: organizationID
+      }
+    }))
+
+    await this._prismaService.$transaction(deleteQuery);
 
     return true;
   }
