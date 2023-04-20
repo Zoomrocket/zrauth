@@ -18,8 +18,7 @@ export class OrganizationService implements IOrganizationService {
     private readonly _mailerService: MailerService,
     private readonly _redisService: RedisService,
     private readonly configService: ConfigService,
-  ) { }
-
+  ) {}
 
   async fetchAllOrganizations() {
     let organizations = await this._prismaService.organization.findMany();
@@ -29,14 +28,14 @@ export class OrganizationService implements IOrganizationService {
   async editOrganization(id: string, name: string, organizationData: any) {
     await this._prismaService.organization.update({
       where: {
-        id: id
+        id: id,
       },
       data: {
         name: name,
-        orgData: organizationData
-      }
-    })
-    return "ok"
+        orgData: organizationData,
+      },
+    });
+    return 'ok';
   }
 
   async addUser(
@@ -86,7 +85,7 @@ export class OrganizationService implements IOrganizationService {
 
       `,
       });
-    } catch { }
+    } catch {}
     return orguser;
   }
 
@@ -219,8 +218,8 @@ export class OrganizationService implements IOrganizationService {
             <p>Hi ${name},</p>
             <p>You've been invited to join ${organization.name}</p>
             <p>If you want to join please press the link <a href="${this.configService.get(
-            'REDIRECT_URL',
-          )}/join?user=${email}&org=${organizationID}&code=${code}&name=${name}">here</a></p>
+              'REDIRECT_URL',
+            )}/join?user=${email}&org=${organizationID}&code=${code}&name=${name}">here</a></p>
             <p>Thanks,</p>
             <p>${this.configService.get('ORG_NAME')}.</p>
         `,
@@ -338,7 +337,6 @@ export class OrganizationService implements IOrganizationService {
     return true;
   }
 
-
   async deleteRole(userID: string, organizationID: string, roleName: string) {
     let user = await this._prismaService.organizationUser.findFirst({
       where: { userID: userID, organizationID: organizationID },
@@ -379,15 +377,19 @@ export class OrganizationService implements IOrganizationService {
 
     let deleteQuery = [];
 
-    deleteQuery.push(this._prismaService.role.deleteMany({
-      where: {
-        organizationUser: user
-      }
-    }))
+    deleteQuery.push(
+      this._prismaService.role.deleteMany({
+        where: {
+          organizationUser: user,
+        },
+      }),
+    );
 
-    deleteQuery.push(this._prismaService.organizationUser.delete({
-      where: { id: user.id },
-    }))
+    deleteQuery.push(
+      this._prismaService.organizationUser.delete({
+        where: { id: user.id },
+      }),
+    );
 
     await this._prismaService.$transaction(deleteQuery);
 
@@ -395,36 +397,41 @@ export class OrganizationService implements IOrganizationService {
   }
 
   async deleteOrganization(organizationID: string) {
-
-    let organizationUsers = await this._prismaService.organizationUser.findMany({
-      where: {
-        organizationID: organizationID
-      }
-    })
+    let organizationUsers = await this._prismaService.organizationUser.findMany(
+      {
+        where: {
+          organizationID: organizationID,
+        },
+      },
+    );
 
     let deleteQuery = [];
 
     for (let organizationUser of organizationUsers) {
+      deleteQuery.push(
+        this._prismaService.role.deleteMany({
+          where: {
+            organizationUser: organizationUser,
+          },
+        }),
+      );
 
-      deleteQuery.push(this._prismaService.role.deleteMany({
-        where: {
-          organizationUser: organizationUser
-        }
-      }))
-
-      deleteQuery.push(this._prismaService.organizationUser.delete({
-        where: {
-          id: organizationUser.id
-        }
-      }))
-
+      deleteQuery.push(
+        this._prismaService.organizationUser.delete({
+          where: {
+            id: organizationUser.id,
+          },
+        }),
+      );
     }
 
-    deleteQuery.push(this._prismaService.organization.delete({
-      where: {
-        id: organizationID
-      }
-    }))
+    deleteQuery.push(
+      this._prismaService.organization.delete({
+        where: {
+          id: organizationID,
+        },
+      }),
+    );
 
     await this._prismaService.$transaction(deleteQuery);
 
