@@ -9,12 +9,18 @@ import {
   Get,
   Put,
   UseGuards,
-  Delete
+  Delete,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { OrganizationService } from 'src/organization/organization.service';
 import { AdminGuard } from 'src/security/admin.guard';
-import { AddUserOrgDto, ChangeEmailDto, EditOrgDto, InviteUserOrgDto, updateUserOrgDto } from './admin.dto';
+import {
+  AddUserOrgDto,
+  ChangeEmailDto,
+  EditOrgDto,
+  InviteUserOrgDto,
+  updateUserOrgDto,
+} from './admin.dto';
 import { UserService } from 'src/user/user.service';
 
 @UseGuards(AdminGuard)
@@ -22,30 +28,37 @@ import { UserService } from 'src/user/user.service';
 export class AdminController {
   constructor(
     private readonly _organizationService: OrganizationService,
-    private readonly _userService: UserService
-  ) { }
+    private readonly _userService: UserService,
+  ) {}
 
   @Put('/users/change-email')
   async putUserEmail(@Body() body: ChangeEmailDto, @Res() res: Response) {
     try {
       if (body.existing_email !== body.new_email) {
-        await this._userService.changeEmailAddress(body.existing_email, body.new_email);
+        await this._userService.changeEmailAddress(
+          body.existing_email,
+          body.new_email,
+        );
       }
-      return { detail: "updated" };
+      return { detail: 'updated' };
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to change email" }
+      return { detail: 'unable to change email' };
     }
   }
 
   @Put('/organizations')
   async putOrganization(@Body() body: EditOrgDto, @Res() res: Response) {
     try {
-      await this._organizationService.editOrganization(body.id, body.name, body.organizationData);
-      return { detail: "updated" };
+      await this._organizationService.editOrganization(
+        body.id,
+        body.name,
+        body.organizationData,
+      );
+      return { detail: 'updated' };
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to fetch organizations" }
+      return { detail: 'unable to fetch organizations' };
     }
   }
 
@@ -56,7 +69,7 @@ export class AdminController {
       return result;
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to fetch organizations" }
+      return { detail: 'unable to fetch organizations' };
     }
   }
 
@@ -67,20 +80,19 @@ export class AdminController {
       return result;
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to fetch users" }
+      return { detail: 'unable to fetch users' };
     }
   }
-
 
   @Delete('/users/:uid')
   async deleteUser(@Param() params: any, @Res() res: Response) {
     try {
       await this._userService.deleteUser(params.uid);
-      return { detail: "deleted" };
+      return { detail: 'deleted' };
     } catch (err) {
-      console.log(err)
+      console.log(err);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to delete user" }
+      return { detail: 'unable to delete user' };
     }
   }
 
@@ -88,39 +100,38 @@ export class AdminController {
   async removeUserFromOrganization(@Param() params: any, @Res() res: Response) {
     try {
       await this._organizationService.leaveOrganization(params.uid, params.oid);
-      return { detail: "deleted" };
+      return { detail: 'deleted' };
     } catch (err) {
-      console.log(err)
+      console.log(err);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to delete user" }
+      return { detail: 'unable to delete user' };
     }
   }
-
 
   @Get('/organizations/:oid/users')
   async getOrganizationUsers(@Param() params: any, @Res() res: Response) {
     try {
-      let result = await this._organizationService.fetchOrganizationUsers(params.oid);
+      let result = await this._organizationService.fetchOrganizationUsers(
+        params.oid,
+      );
       return result;
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to fetch organizations" }
+      return { detail: 'unable to fetch organizations' };
     }
   }
-
 
   @Delete('/organizations/:oid')
   async deleteOrganization(@Param() params: any, @Res() res: Response) {
     try {
       await this._organizationService.deleteOrganization(params.oid);
-      return { detail: "deleted" };
+      return { detail: 'deleted' };
     } catch (err) {
       console.log(err);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return { detail: "unable to delete organization" }
+      return { detail: 'unable to delete organization' };
     }
   }
-
 
   @Post('/organizations/users/invite-user')
   async postInvite(@Body() body: InviteUserOrgDto, @Res() res: Response) {
@@ -148,7 +159,7 @@ export class AdminController {
         body.name,
         body.password,
         body.organization_id,
-        body.extra_profile_data,
+        body?.extra_profile_data || {},
         body.roles,
       );
       return user;
@@ -179,5 +190,4 @@ export class AdminController {
       return { detail: 'unable to add user' };
     }
   }
-
 }
