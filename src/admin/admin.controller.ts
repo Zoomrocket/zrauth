@@ -9,7 +9,8 @@ import {
   Get,
   Put,
   UseGuards,
-  Delete
+  Delete,
+  Query
 } from '@nestjs/common';
 import { Response } from 'express';
 import { OrganizationService } from 'src/organization/organization.service';
@@ -71,6 +72,17 @@ export class AdminController {
     }
   }
 
+
+  @Get("/users/organizations")
+  async getUserOrganization(@Query() query: any, @Res() res: Response) {
+    try {
+      let organizations = await this._userService.getUserOrganizationsByEmail(query.email);
+      return organizations;
+    } catch (err) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { detail: "unable to delete user" }
+    }
+  }
 
   @Delete('/users/:uid')
   async deleteUser(@Param() params: any, @Res() res: Response) {

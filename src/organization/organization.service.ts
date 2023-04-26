@@ -359,6 +359,7 @@ export class OrganizationService implements IOrganizationService {
   }
 
   async leaveOrganization(userID: string, organizationID: string) {
+
     let user = await this._prismaService.organizationUser.findFirst({
       where: { userID: userID, organizationID: organizationID },
     });

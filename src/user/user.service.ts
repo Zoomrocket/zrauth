@@ -24,6 +24,31 @@ export class UserService {
     return true;
   }
 
+  async getUserOrganizationsByEmail(email: string) {
+    let user = await this._prismaService.user.findUnique({
+      where: {
+        email: email
+      }
+    });
+
+    if(!user) {
+      return [];
+    }
+
+    let members = await this._prismaService.organizationUser.findMany({
+      where: {
+        userID: user.id
+      },
+      include: {
+        roles: true,
+        organization: true
+      }
+    })
+
+    return members;
+
+  }
+
   async updatePassword(userID: string, current: string, update: string) {
     let user = await this._prismaService.user.findUnique({
       where: { id: userID },
